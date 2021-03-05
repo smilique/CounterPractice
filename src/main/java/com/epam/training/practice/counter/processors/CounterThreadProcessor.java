@@ -5,30 +5,30 @@ import com.epam.training.practice.counter.entities.CounterRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public class CounterThreadProcessor {
 
     private static final int THREAD_COUNT = 10;
 
-    public void process() throws InterruptedException {
+    public void process() {
 
         Counter counter = new Counter();
         List<Thread> threads = new ArrayList<>();
 
-        for (int i = 0; i < THREAD_COUNT; i++) {
+        IntStream.range(0, THREAD_COUNT).forEach(increment -> {
             Thread thread = new Thread(new CounterRunnable(counter));
             thread.start();
             threads.add(thread);
-        }
+        });
 
-        for (Thread thread : threads) {
+        threads.forEach(thread -> {
             try {
                 thread.join();
             } catch (InterruptedException e) {
                 System.err.println(e.getMessage() + e);
-                throw new InterruptedException(e.getMessage());
             }
-        }
+        });
 
         System.out.println(counter.getValue());
     }

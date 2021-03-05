@@ -8,33 +8,33 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 
 public class CounterExecutorProcessor {
 
     private static final int THREAD_COUNT = 10;
 
-    public void process() throws Exception {
+    public void process() {
 
         Counter counter = new Counter();
         List<Future<Number>> futures = new ArrayList<>();
 
         ExecutorService executorService = Executors.newFixedThreadPool(THREAD_COUNT);
+        IntStream.range(0,THREAD_COUNT).forEach(number -> {
+            futures.add(
+                    executorService.submit(new CounterCallable(counter)));
+        });
 
-        for (int i = 0; i < 10; i++) {
-            futures.add(executorService.submit(new CounterCallable(counter)));
-        }
         executorService.shutdown();
 
-        for (Future<Number> fut : futures) {
+        futures.forEach(future -> {
             try {
-                int newValue = (int)fut.get();
+                int newValue = (int) future.get();
                 counter.setValue(newValue);
-
             } catch (Exception e) {
                 System.err.println(e.getMessage() + e);
-                throw new Exception(e.getMessage(),e);
             }
-        }
+        });
 
         System.out.println(counter.getValue());
     }
